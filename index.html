@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIVYA-DATA | Solar Return Calculator</title>
+    <!-- Chart.js CDN for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blush: #FCE7F3;
+            --lilac: #EDE9FE;
+            --sky: #E0F2FE;
+            --cream: #FFFBFA;
+            --text-main: #4C1D95;
+            --text-soft: #6D28D9;
+            --gradient: linear-gradient(135deg, #FCE7F3 0%, #EDE9FE 50%, #E0F2FE 100%);
+            --cta-gradient: linear-gradient(90deg, #F472B6, #8B5CF6);
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cream);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(327,73%,94%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(257,81%,96%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(202,94%,97%,1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: var(--text-soft);
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-style: italic;
+            background: var(--cta-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            color: var(--text-soft);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Glass Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-soft);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #F472B6;
+            box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            background: var(--cta-gradient);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(244, 114, 182, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(244, 114, 182, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* Results Area */
+        #results {
+            display: none;
+            animation: slideUp 0.8s ease-out forwards;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .result-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        .insight-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border-bottom: 4px solid var(--lilac);
+        }
+
+        .insight-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: var(--text-soft);
+        }
+
+        .insight-card p {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .summary-banner {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: var(--gradient);
+            padding: 40px;
+            border-radius: 25px;
+            margin-bottom: 20px;
+        }
+
+        .summary-banner h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* Loading Animation */
+        .loader-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 251, 250, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loader-circle {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--blush);
+            border-top: 4px solid var(--text-soft);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        .floating-orb {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 15s infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 100px); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.8rem;
+            color: var(--text-soft);
+            opacity: 0.6;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-orb" style="background: #FCE7F3; top: -100px; left: -100px;"></div>
+    <div class="floating-orb" style="background: #E0F2FE; bottom: -100px; right: -100px; animation-delay: -5s;"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">Divya-Data</div>
+            <h1>Solar Return</h1>
+            <p class="subtitle">Discover the emotional architecture and major themes of your personal new year.</p>
+        </header>
+
+        <div class="card" id="form-card">
+            <div id="error-box" class="error-msg">Please check your inputs and try again.</div>
+            
+            <div class="form-group">
+                <label>Birthday & Time</label>
+                <input type="datetime-local" id="birthdate" required>
+            </div>
+
+            <div class="form-group">
+                <label>Solar Return Year</label>
+                <input type="number" id="returnYear" value="2025" min="1900" max="2100">
+            </div>
+
+            <button class="btn-primary" onclick="calculateReturn()">Analyze My Year</button>
+        </div>
+
+        <div id="results">
+            <div class="summary-banner">
+                <h3 style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;">Your Personal Theme</h3>
+                <h2 id="theme-title">Year of Transformation</h2>
+                <p id="theme-desc" style="font-size: 1.1rem; opacity: 0.8;"></p>
+            </div>
+
+            <div class="result-grid">
+                <div class="insight-card">
+                    <h3>Key Growth Area</h3>
+                    <p id="growth-area">Emotional Maturity</p>
+                </div>
+                <div class="insight-card">
+                    <h3>Emotional Focus</h3>
+                    <p id="emotional-focus">Self-Love & Boundaries</p>
+                </div>
+                <div class="insight-card">
+                    <h3>Risk Zone</h3>
+                    <p id="risk-zone">Burnout & Overcommitment</p>
+                </div>
+                <div class="insight-card">
+                    <h3>Solar Return Date</h3>
+                    <p id="exact-date">October 14, 2025</p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 30px;">
+                <h3 style="text-align: center; margin-bottom: 20px; font-family: 'Playfair Display'; font-size: 1.5rem;">House Dominance Energy</h3>
+                <div class="chart-container">
+                    <canvas id="houseChart"></canvas>
+                </div>
+            </div>
+            
+            <button class="btn-primary" style="background: white; color: var(--text-soft); border: 1px solid var(--lilac); box-shadow: none;" onclick="resetForm()">Calculate Another</button>
+        </div>
+
+        <div class="footer">
+            &copy; 2024 DIVYA-DATA. Cosmic data processed with intention.
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader-circle"></div>
+        <p style="font-family: 'Playfair Display'; italic; font-size: 1.2rem;">Reading the stars...</p>
+    </div>
+
+    <script>
+        let houseChart = null;
+
+        // Simplified Astronomical Logic
+        // In a real app, we'd use Ephemeris APIs. 
+        // Here we simulate the return logic based on the sun's average movement (approx 1 degree/day)
+        // and randomness influenced by the specific date/year for a "Solar Return" feel.
+
+        function calculateReturn() {
+            const birthdateVal = document.getElementById('birthdate').value;
+            const yearVal = document.getElementById('returnYear').value;
+            const errorBox = document.getElementById('error-box');
+
+            if (!birthdateVal || !yearVal) {
+                errorBox.style.display = 'block';
+                return;
+            }
+            errorBox.style.display = 'none';
+
+            // Show Loader
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            setTimeout(() => {
+                const birthDate = new Date(birthdateVal);
+                
+                // Determine exact return date (simulated slight shift due to leap years/precession)
+                // Solar returns usually happen within 24 hours of the birthday
+                const returnDate = new Date(yearVal, birthDate.getMonth(), birthDate.getDate());
+                const offsetHours = (Math.random() * 24) - 12; // +/- 12 hours
+                returnDate.setHours(birthDate.getHours() + offsetHours);
+
+                // House Dominance Simulation (1-12)
+                // Based on "Seed" from the date to ensure consistency for the same input
+                const seed = birthDate.getTime() + parseInt(yearVal);
+                const dominantHouse = (Math.floor(Math.abs(Math.sin(seed) * 12)) % 12) + 1;
+
+                displayResults(returnDate, dominantHouse);
+                loader.style.display = 'none';
+            }, 1800);
+        }
+
+        const interpretations = {
+            1: { theme: "Self-Reinvention", growth: "Personal Identity", emotional: "Independence", risk: "Impulsivity", desc: "A powerful year for starting over and putting yourself first." },
+            2: { theme: "Resource Flow", growth: "Financial Security", emotional: "Self-Worth", risk: "Materialism", desc: "Focus on building your foundation and understanding your value." },
+            3: { theme: "Social Expansion", growth: "Communication", emotional: "Mental Stimulation", risk: "Gossip/Distraction", desc: "Your local environment and voice become your greatest assets." },
+            4: { theme: "Rootedness", growth: "Home & Family", emotional: "Inner Security", risk: "Isolation", desc: "A deeply private year focused on emotional healing and sanctuary." },
+            5: { theme: "Creative Spark", growth: "Joy & Pleasure", emotional: "Romance", risk: "Risk-taking", desc: "The universe invites you to play, create, and fall in love with life." },
+            6: { theme: "Refinement", growth: "Physical Wellness", emotional: "Daily Habits", risk: "Anxiety/Workaholism", desc: "A year for organizing your world and prioritizing your health." },
+            7: { theme: "Relationship Mirror", growth: "Partnerships", emotional: "Compromise", risk: "People-pleasing", desc: "Significant others (romantic or business) take center stage." },
+            8: { theme: "Transformation", growth: "Intimacy & Depth", emotional: "Shadow Work", risk: "Power Struggles", desc: "A mystical year of shedding old skins and intense evolution." },
+            9: { theme: "Horizon Shifting", growth: "Higher Learning", emotional: "Faith", risk: "Dogmatism", desc: "Travel, study, and philosophy expand your world view." },
+            10: { theme: "Public Harvest", growth: "Career & Status", emotional: "Legacy", risk: "Reputation Fear", desc: "The world is watching. Your hard work culminates in visibility." },
+            11: { theme: "Community Pulse", growth: "Network & Dreams", emotional: "Belonging", risk: "Social Fatigue", desc: "Focus on your long-term visions and the people who share them." },
+            12: { theme: "Spiritual Closure", growth: "Subconscious Mind", emotional: "Surrender", risk: "Escapism", desc: "A year for rest, dreaming, and releasing what no longer serves you." }
+        };
+
+        function displayResults(date, house) {
+            const data = interpretations[house];
+            
+            document.getElementById('form-card').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            document.getElementById('theme-title').innerText = `Year of ${data.theme}`;
+            document.getElementById('theme-desc').innerText = data.desc;
+            document.getElementById('growth-area').innerText = data.growth;
+            document.getElementById('emotional-focus').innerText = data.emotional;
+            document.getElementById('risk-zone').innerText = data.risk;
+            document.getElementById('exact-date').innerText = date.toLocaleDateString('en-US', { 
+                month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+
+            renderChart(house);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderChart(activeHouse) {
+            const ctx = document.getElementById('houseChart').getContext('2d');
+            
+            // Create data where the active house is prominent
+            const labels = Array.from({length: 12}, (_, i) => `House ${i+1}`);
+            const dataValues = labels.map((_, i) => (i + 1 === activeHouse ? 90 : Math.floor(Math.random() * 40) + 20));
+
+            if (houseChart) houseChart.destroy();
+
+            houseChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Energy Intensity',
+                        data: dataValues,
+                        backgroundColor: 'rgba(237, 233, 254, 0.5)',
+                        borderColor: '#8B5CF6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#F472B6',
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(139, 92, 246, 0.1)' },
+                            grid: { color: 'rgba(139, 92, 246, 0.1)' },
+                            ticks: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('form-card').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
